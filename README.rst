@@ -64,3 +64,29 @@ Usage:
       -l N, --limit N   only copy N number of message(s)
   
 Only tested on Python 2.7.
+
+Oauth2 support for google
+=========================
+
+Google imap services requre oauth2 authentication. Google has provided 
+Oauth2  code sample here: https://github.com/google/gmail-oauth2-tools
+
+oauth2 authentication is taken from here.
+
+How it works:
+
+1. you will need Oauth client id and secret key:
+   please register a project  here: https://console.developers.google.com)
+   then follow to API manager, in  credentials section create Oauth client id (select: 'other' as client type)
+
+2. instead of your password, you will need to provide your credentials in form of <yourfullemail>:appid:appsecret:
+
+
+
+::
+
+    python imapcopy.py "imap.gmail.com:993" "username@gmail.com:2817892479028742323.apps.googleusercontent.com:jjhJHDJKHuiJHJW" \
+    "imap.otherserver.com:993" "username:password" \
+    "INBOX" "OTHER-SERVER/Inbox" 
+
+3. The script will get permission URL, which you would need to enter in your browser and obtain a verification code.

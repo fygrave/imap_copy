@@ -15,6 +15,7 @@ import imaplib
 import logging
 import argparse
 import email
+import oauth2
 
 
 class IMAP_Copy(object):
@@ -59,10 +60,29 @@ class IMAP_Copy(object):
 
         if len(auth) > 0:
             self.logger.info("Authenticate at %s" % target)
-            connection.login(*auth)
+            if data["host"] == "imap.googlemail.com" or data["host"] == "imap.gmail.com":
+                self.do_oauth_authentication(connection, auth)
+            else:
+                connection.login(*auth)
 
         setattr(self, '_conn_%s' % target, connection)
         self.logger.info("%s connection established" % target)
+    def do_oauth_authentication(self, connection, creds):
+        self.logger.info("Performing OAUTH2 authentication for google")
+        username = creds[0]
+        client_id = creds[1]
+        client_secret = creds[2]
+        permission_url = oauth2.GeneratePermissionUrl(client_id, "https://mail.google.com/")
+        self.logger.info("Please use this url to get verification code: %s" % permission_url)
+        authorization_code = raw_input("Enter verification code: ")
+        response = oauth2.AuthorizeTokens(client_id, client_secret, authorization_code)
+        print 'Refresh Token: %s' % response['refresh_token']
+        print 'Access Token: %s' % response['access_token']
+        print 'Access Token Expiration Seconds: %s' % response['expires_in']
+
+        auth_string = 'user=%s\1auth=Bearer %s\1\1' % (username, response["access_token"])
+        return connection.authenticate("XOAUTH2", lambda x: auth_string)
+
 
     def connect(self):
         self._connect('source')
